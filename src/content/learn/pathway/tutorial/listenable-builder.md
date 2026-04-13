@@ -60,9 +60,9 @@ class _ArticleViewState extends State<ArticleView> {
 }
 ```
 
-### Create the article view model
+### Add ListenableBuilder and handle states
 
-Create the `ArticleViewModel` in this widget:
+Use `ListenableBuilder` to listen for state changes and rebuild the UI. Handle different states using a switch expression:
 
 <?code-excerpt "fwe/wikipedia_reader/lib/step4b_main.dart (ArticleView)"?>
 ```dart
@@ -112,11 +112,9 @@ class _ArticleViewState extends State<ArticleView> {
 }
 ```
 
-### Listen for state changes
+### Create the ArticlePage widget
 
-Wrap your UI in a [`ListenableBuilder`][] to listen for state changes,
-and pass it a `ChangeNotifier` object.
-In this case, the `ArticleViewModel` extends `ChangeNotifier`.
+Create the `ArticlePage` widget that will display the content when loaded:
 
 <?code-excerpt "fwe/wikipedia_reader/lib/step4c_main.dart (ArticlePage)"?>
 ```dart
@@ -150,19 +148,9 @@ building different widgets based on the state.
 
 [`ListenableBuilder`]: {{site.api}}/flutter/widgets/ListenableBuilder-class.html
 
-### Handle possible view model states
+### Complete the ArticlePage layout
 
-Recall the `ArticleViewModel`, which has three properties that
-the UI is interested in:
-
-- `Summary? summary`
-- `bool loading`
-- `String? errorMessage`
-
-Depending on the combined state of these properties,
-the UI can display different widgets.
-Use Dart's support for [switch expressions][]
-to handle all possible combinations in a clean, readable way:
+Add the `ArticleWidget` and a button to fetch the next article:
 
 <?code-excerpt "fwe/wikipedia_reader/lib/step4d_main.dart (ArticlePage)"?>
 ```dart
@@ -325,9 +313,14 @@ class ArticleWidget extends StatelessWidget {
 }
 ```
 
-#### Add padding and column layout
 
-Wrap the content in proper padding and layout:
+
+### Update your app to include the article view
+
+Connect everything together by updating your `MainApp` to
+include your completed `ArticleView`.
+
+Replace your existing `MainApp` with this updated version:
 
 <?code-excerpt "fwe/wikipedia_reader/lib/step4_main.dart (MainApp)"?>
 ```dart
@@ -337,109 +330,6 @@ class MainApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const MaterialApp(home: ArticleView());
-  }
-}
-```
-
-#### Add conditional image display
-
-Add the article image that only shows when available:
-
-```dart
-class ArticleWidget extends StatelessWidget {
-  const ArticleWidget({super.key, required this.summary});
-
-  final Summary summary;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Column(
-        
-        children: [
-          if (summary.hasImage)
-            Image.network(
-              summary.originalImage!.source,
-            ),
-          Text('Article content will be displayed here'),
-        ],
-      ),
-    );
-  }
-}
-```
-
-#### Complete with styled text content
-
-Replace the placeholder text with a
-properly styled title, description, and extract:
-
-```dart
-class ArticleWidget extends StatelessWidget {
-  const ArticleWidget({super.key, required this.summary});
-
-  final Summary summary;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Column(
-        
-        children: [
-          if (summary.hasImage)
-            Image.network(
-              summary.originalImage!.source,
-            ),
-          Text(
-            summary.titles.normalized,
-            overflow: TextOverflow.ellipsis,
-            style: TextTheme.of(context).displaySmall,
-          ),
-          if (summary.description != null)
-            Text(
-              summary.description!,
-              overflow: TextOverflow.ellipsis,
-              style: TextTheme.of(context).bodySmall,
-            ),
-          Text(
-            summary.extract,
-          ),
-        ],
-      ),
-    );
-  }
-}
-```
-
-This widget demonstrates a few important UI concepts:
-
-- **Conditional rendering**:
-  The `if` statements show content only when available.
-- **Text styling**:
-  Different text styles create visual hierarchy using Flutter's theme system.
-
-
-- **Overflow handling**:
-  `TextOverflow.ellipsis` prevents text from breaking the layout.
-
-### Update your app to include the article view
-
-Connect everything together by updating your `MainApp` to
-include your completed `ArticleView`.
-
-Replace your existing `MainApp` with this updated version:
-
-```dart
-class MainApp extends StatelessWidget {
-  const MainApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      home: ArticleView(),
-    );
   }
 }
 ```
