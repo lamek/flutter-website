@@ -1,59 +1,185 @@
---- 
-title: Get started with the GenUI SDK for Flutter
-shortTitle: Get started with the GenUI SDK
+---
+title: Get started with A2UI and GenUI for Flutter
+shortTitle: Get started with A2UI
 breadcrumb: Get started
 description: >-
-  Learn how to use GenUI SDK for Flutter and add it
-  to your existing Flutter app.
+  Learn how to add A2UI (a2ui_flutter, a2ui_core, and a2ui_agent) or the
+  legacy GenUI SDK to your Flutter app.
 next:
   title: Input and events
   path: /ai/genui/input-events
 prev:
-  title: GenUI SDK main components & concepts
+  title: Main components and concepts
   path: /ai/genui/components
 ---
 
-This guide explains how to get started with
-GenUI SDK for Flutter and its series of packages.
-The SDK's key components
-are described in the [main components][] page.
+This guide explains how to get started with [A2UI][] (Agent-to-User Interface)
+for Flutter using [`a2ui_flutter`][], [`a2ui_core`][], and [`a2ui_agent`][].
+The core architecture and classes are described on the [main components][] page.
 
-:::experimental
-The `genui` package is in
-alpha and is likely to change.
+:::note
+For new Flutter apps, use [`a2ui_flutter`][] and [`a2ui_core`][] (plus
+[`a2ui_agent`][] when calling an LLM directly from Dart). Together, these
+packages replace the deprecated [`genui`][] and `genui_a2a` packages. Do not
+use the discontinued `flutter_genui` or `genui_a2ui` packages.
 :::
 
-Use the following instructions to add [`genui`][] to your Flutter app.
-The code examples show how to perform the instructions on a brand new
-app created by running [`flutter create`][], but you can follow the same
-steps for your existing Flutter app.
+Use the following instructions to add A2UI to a new project created with
+[`flutter create`][] or to an existing Flutter app.
 
+[A2UI]: https://a2ui.org/
+[`a2ui_flutter`]: {{site.pub-pkg}}/a2ui_flutter
+[`a2ui_core`]: {{site.pub-pkg}}/a2ui_core
+[`a2ui_agent`]: {{site.pub-pkg}}/a2ui_agent
 [`genui`]: {{site.pub-pkg}}/genui
 [main components]: /ai/genui/components
 [`flutter create`]: /reference/create-new-app
 
 ## Configure your agent provider
 
-The `genui` package can connect to a variety of agent providers.
-Available providers include the following:
+Choose the integration setup that matches your architecture:
 
-**Firebase AI Logic**
-: Useful for production apps where interactions with the LLM are
-  all in your Flutter client, without requiring a server.
-  Firebase also makes it easier to ship your
-  AI features securely since Firebase handles the
-  management of your Gemini API key.
+**A2UI (`a2ui_flutter` and `a2ui_core`)**
+: Recommended for all new Flutter projects. Render A2UI v1.0 and v0.9 surfaces
+  from any remote agent server, or add `a2ui_agent` to prompt an LLM directly
+  from your Dart app.
 
-**GenUI A2UI**
-: Useful for client/server architectures where your
-  agent is running on the server.
+**Firebase AI Logic (legacy `genui`)**
+: Legacy [`genui`][] integration where interactions with the Gemini API run in
+  your Flutter client through Firebase AI Logic.
+
+**GenUI A2UI (legacy `genui_a2a`)**
+: Legacy [`genui`][] and `genui_a2a` integration for Agent-to-Agent (A2A)
+  servers.
 
 **Build your own**
-: You can also build your own adapter
-  to connect to your preferred LLM provider.
-  Expect more from us and the community soon.
+: Connect a custom LLM client or transport adapter.
 
 <Tabs key="agent-provider" wrapped="true">
+
+<Tab name="A2UI (Recommended)">
+
+Use [`a2ui_flutter`][] and [`a2ui_core`][] to render A2UI surfaces in your
+Flutter app:
+
+ 1. Add `a2ui_flutter` and `a2ui_core` to your `pubspec.yaml` file:
+
+    ```console
+    $ flutter pub add a2ui_flutter a2ui_core
+    ```
+
+ 2. Create a `MessageProcessor` with `basicCatalog()` and render an
+    `A2uiSurface` inside a `MaterialApp` and `Scaffold`:
+
+    ```dart title="lib/main.dart"
+    import 'package:a2ui_core/a2ui_core.dart';
+    import 'package:a2ui_flutter/a2ui_flutter.dart';
+    import 'package:a2ui_flutter/basic_catalog.dart';
+    import 'package:flutter/material.dart';
+
+    void main() => runApp(const MaterialApp(home: HelloA2ui()));
+
+    class HelloA2ui extends StatefulWidget {
+      const HelloA2ui({super.key});
+
+      @override
+      State<HelloA2ui> createState() => _HelloA2uiState();
+    }
+
+    class _HelloA2uiState extends State<HelloA2ui> {
+      final processor = MessageProcessor<ComponentImplementation>(
+        catalogs: [basicCatalog()],
+      );
+      SurfaceModel<ComponentImplementation>? surface;
+
+      @override
+      void initState() {
+        super.initState();
+        processor.model.onSurfaceCreated.subscribe(
+          (created) => setState(() => surface = created),
+        );
+        processor.model.onAction.subscribe(
+          (action) => debugPrint('Action: ${action.name}'),
+        );
+
+        // In a production app, these messages stream from your agent.
+        processor.processMessages([
+          {
+            'version': '1.0',
+            'createSurface': {
+              'surfaceId': 'hello',
+              'catalogId': BasicCatalog.v1_0Id,
+            },
+          },
+          {
+            'version': '1.0',
+            'updateComponents': {
+              'surfaceId': 'hello',
+              'components': [
+                {
+                  'id': 'root',
+                  'component': 'Column',
+                  'children': ['greeting', 'button'],
+                },
+                {'id': 'greeting', 'component': 'Text', 'text': 'Hello, A2UI!'},
+                {
+                  'id': 'button',
+                  'component': 'Button',
+                  'child': 'label',
+                  'action': {
+                    'event': {'name': 'greet'},
+                  },
+                },
+                {'id': 'label', 'component': 'Text', 'text': 'Say hi'},
+              ],
+            },
+          },
+        ]);
+      }
+
+      @override
+      void dispose() {
+        processor.dispose();
+        super.dispose();
+      }
+
+      @override
+      Widget build(BuildContext context) {
+        final currentSurface = surface;
+        return Scaffold(
+          body: currentSurface == null
+              ? null
+              : A2uiSurface(surface: currentSurface),
+        );
+      }
+    }
+    ```
+
+ 3. If your app calls a model directly without a separate agent server, add
+    [`a2ui_agent`][] to generate the A2UI system prompt snippet and parse the
+    streamed response:
+
+    ```console
+    $ flutter pub add a2ui_agent
+    ```
+
+    ```dart
+    final generator = A2uiGenerator(catalogs: [CatalogConfig(basicCatalog())]);
+    final processor = generator.createProcessor(rendererCapabilities);
+    final stream = processor.openStream(state: RendererState.of(renderer));
+
+    await for (final chunk in llmStream) {
+      stream.feed(chunk);
+    }
+    stream.close();
+    ```
+
+To explore complete v1.0 and v0.9 example apps, check out the
+[a2ui_flutter package README][] and the [A2UI documentation][A2UI].
+
+[a2ui_flutter package README]: https://github.com/a2ui-project/a2ui/tree/main/dart/a2ui_flutter
+
+</Tab>
 
 <Tab name="Firebase AI Logic">
 
@@ -598,11 +724,56 @@ To receive and display generated UI:
 
 ## Add your own widgets to the catalog {:#custom-widgets}
 
-For your convenience, you can use the provided core catalog of widgets.
-However, most production apps will want to define a custom
-catalog of widgets.
+Both `a2ui_flutter` and the legacy `genui` package include a built-in basic
+catalog of Material widgets, and both allow you to register custom components.
 
-To add your own widgets, use the following instructions.
+### Defining a custom component in `a2ui_flutter`
+
+In `a2ui_flutter`, define a `ComponentImplementation` with a JSON Schema, place
+it in a `CatalogImplementation` with its own catalog ID, and register it
+alongside `basicCatalog()` in your `MessageProcessor`:
+
+```dart
+final rating = ComponentImplementation(
+  name: 'Rating',
+  schema: Schema.object(
+    properties: {
+      'label': CommonSchemasV1.dynamicString,
+      'value': CommonSchemasV1.dynamicNumber,
+      'onChanged': Schema.fromMap({r'$ref': r'common_types.json#/$defs/Action'}),
+    },
+    required: ['value'],
+  ),
+  builder: (context, node, props, buildChild) {
+    final WritableBinding<Object?>? value = props.writable('value');
+    return StarRating(
+      label: props.string('label') ?? '',
+      value: props.number('value') ?? 0,
+      onChanged: value == null
+          ? null
+          : (stars) {
+              value.set(stars);
+              props.action('onChanged')?.call();
+            },
+    );
+  },
+);
+
+final customCatalog = CatalogImplementation(
+  id: 'https://example.com/demo/catalog.json',
+  protocolVersion: A2uiProtocolVersion.v1_0,
+  components: [rating],
+);
+
+final processor = MessageProcessor<ComponentImplementation>(
+  catalogs: [basicCatalog(), customCatalog],
+);
+```
+
+### Defining a custom widget in legacy `package:genui`
+
+If you are maintaining an existing `package:genui` app, use the following
+instructions:
 
  1. Depend on the `json_schema_builder` package
 
@@ -794,7 +965,7 @@ final promptBuilder = PromptBuilder.chat(
 
 [instruction-example]: /ai/genui/get-started#create-the-connection-to-an-agent
 
-## Troubleshooting/FAQ {:#troubleshoot}
+## Troubleshooting and FAQ {:#troubleshoot}
 
 ### How can I configure logging?
 

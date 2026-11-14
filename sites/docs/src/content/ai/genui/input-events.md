@@ -1,22 +1,62 @@
 ---
 title: Input and events
-description: How input and events are handled in GenUI applications.
+description: How user input, two-way bindings, and action events work in A2UI and GenUI Flutter applications.
 prev:
-  title: Get started with the GenUI SDK for Flutter
+  title: Get started with A2UI on Flutter
   path: /ai/genui/get-started
 ---
 
-This guide explains how user interactions are handled
-within the GenUI package, from the initial widget
-interaction to the AI agent receiving the event.
+This guide explains how user interactions and data updates flow from your
+Flutter widgets back to the AI agent in [A2UI][] (`a2ui_flutter` and
+`a2ui_core`) and the legacy `genui` package.
 
-:::experimental
-The `genui` package is in alpha and is likely to change.
+:::note
+For new Flutter projects, use [`a2ui_flutter`][] and [`a2ui_core`][] (plus
+[`a2ui_agent`][] when calling models directly from Dart). Together, these
+packages replace the deprecated [`package:genui`][] package.
 :::
 
-## Overview
+[A2UI]: https://a2ui.org/
+[`a2ui_flutter`]: {{site.pub-pkg}}/a2ui_flutter
+[`a2ui_core`]: {{site.pub-pkg}}/a2ui_core
+[`a2ui_agent`]: {{site.pub-pkg}}/a2ui_agent
 
-In the GenUI architecture, the UI is driven by the AI,
+## Handling actions and bindings in `a2ui_flutter`
+
+In `a2ui_flutter` and `a2ui_core`, user input flows back to the agent through
+two mechanisms:
+
+1. **Two-way data bindings (`props.writable`)**: When a component property is
+   bound to a JSON Pointer path in the surface's `DataModel` (such as
+   `/user/name`), calling `props.writable(key)?.set(newValue)` updates the
+   `DataModel` in place and rebuilds any widgets bound to that path.
+2. **Action messages (`props.action` and `outboundListener`)**: When a user
+   activates a control (such as tapping a `Button`), calling
+   `props.action(key)?.call()` dispatches an A2UI `action` message. Pass
+   `outboundListener` with `unifiedOutbound: true` to your `MessageProcessor`
+   to forward outbound `action`, `error`, and function-call messages to your
+   agent alongside the current `processor.getRendererDataModel()`:
+
+```dart
+void sendToAgent(RendererToAgentMessage message) => send(
+  RendererToAgentMessagePayload.of(message).toJson(),
+  metadata: {'a2uiRendererDataModel': ?processor.getRendererDataModel()},
+);
+
+final processor = MessageProcessor<ComponentImplementation>(
+  catalogs: [basicCatalog()],
+  outboundListener: sendToAgent,
+  unifiedOutbound: true,
+);
+```
+
+If your agent is written in Dart using `a2ui_agent`, use
+`RendererToAgentMessageProcessor` to handle incoming `action`, `error`, and
+`callAgentFunction` messages from the renderer.
+
+## Legacy `package:genui` event flow (deprecated)
+
+In the legacy `genui` architecture, the UI is driven by the AI,
 but user interactions (like clicking a button or submitting a form)
 must be communicated back to the AI agent.
 This allows the agent to update the UI or perform actions

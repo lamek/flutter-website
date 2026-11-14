@@ -682,7 +682,7 @@
       permalink: https://firebase.google.com/docs/ai-logic/get-started?platform=flutter
     - title: Genkit Dart
       permalink: https://genkit.dev/docs/dart/get-started
-    - title: GenUI SDK for Flutter
+    - title: GenUI and A2UI
       permalink: /ai/genui
       children:
         - title: Overview
