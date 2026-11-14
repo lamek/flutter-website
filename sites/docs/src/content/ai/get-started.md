@@ -107,6 +107,9 @@ The Antigravity CLI runs as the `agy` command in your terminal.
 
    # Install Dart skills
    npx skills add dart-lang/skills --skill '*' --agent universal --yes
+
+   # Install A2UI skills for generative UI (optional)
+   npx skills add a2ui-project/a2ui --skill '*' --agent universal --yes
    ```
 
 1. Start an interactive session in your project root:
@@ -259,6 +262,9 @@ npx skills add flutter/agent-plugins --skill '*' --agent universal --yes
 
 # Install Dart skills
 npx skills add dart-lang/skills --skill '*' --agent universal --yes
+
+# Install A2UI skills for generative UI (optional)
+npx skills add a2ui-project/a2ui --skill '*' --agent universal --yes
 ```
 
 **Configure agent rules**
@@ -309,6 +315,9 @@ npx skills add flutter/agent-plugins --skill '*' --agent universal --yes
 
 # Install Dart skills
 npx skills add dart-lang/skills --skill '*' --agent universal --yes
+
+# Install A2UI skills for generative UI (optional)
+npx skills add a2ui-project/a2ui --skill '*' --agent universal --yes
 ```
 
 **Configure agent rules**
@@ -336,3 +345,5 @@ into your assistant's configuration file.
   https://developers.google.com/knowledge/mcp).
 * To explore the official plugins, check out the
   [flutter/agent-plugins](https://github.com/flutter/agent-plugins) repository.
+* To build agent-generated user interfaces with A2UI, check out
+  [A2UI and GenUI for Flutter](/ai/genui).

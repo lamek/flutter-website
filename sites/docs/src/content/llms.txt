@@ -76,9 +76,11 @@ This file provides a curated list of resources to help Large Language Models und
 
 ## Building AI-powered apps
 
+- [A2UI and GenUI for Flutter](https://docs.flutter.dev/ai/genui): Build agent-generated user interfaces in Flutter with A2UI (Agent-to-User Interface) using `a2ui_flutter`, `a2ui_core`, and `a2ui_agent` (replacing the deprecated `genui` package; do not use the discontinued `flutter_genui` or `genui_a2ui` packages).
+- [Get started with A2UI on Flutter](https://docs.flutter.dev/ai/genui/get-started): Install `a2ui_flutter` and `a2ui_core`, render `A2uiSurface` widgets from an agent stream, or prompt a model directly from Dart with `a2ui_agent`.
+- [A2UI documentation for LLMs](https://a2ui.org/llms.txt): Full A2UI protocol v1.0 index, catalog schemas, and cross-platform guides (`npx skills add a2ui-project/a2ui`).
 - [Firebase AI Logic](https://firebase.google.com/docs/ai-logic): Official documentation for Firebase AI Logic.
 - [Firebase AI Logic package](https://pub.dev/packages/firebase_ai): The pub.dev package for Firebase AI Logic.
-- [GenUI SDK for Flutter](https://docs.flutter.dev/ai/genui): Learn how to use the GenUI SDK for Flutter to build more interactive experiences in your apps.
 - [Genkit Dart](https://genkit.dev): An open-source, model-agnostic framework for building AI-powered apps in Dart and Flutter with type-safe schemas, flows, and built-in observability.
 - [Genkit Dart quickstart](https://genkit.dev/docs/dart/overview): Get started building AI-powered Dart and Flutter apps with Genkit.
 
